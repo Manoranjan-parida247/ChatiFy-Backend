@@ -9,14 +9,14 @@ router.post('/signup', signup);
 
 router.post('/login', login);
 
-router.get('/logout', logout);
+router.post('/logout', logout);
 
 router.put("/update-profile",protectRoute, updateProfile);
 
 router.get("/check", protectRoute, (req, res)=> {
     res.status(200).json({
         statusCode: 200,
-        user: req.user
+        data: req.user
     })
 })
 

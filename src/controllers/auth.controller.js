@@ -1,6 +1,7 @@
 import { validateSignupData, generateToken } from "../lib/utils.js"
 import User from "../models/user.js"
 import bcrypt from "bcrypt"
+// import cloudinary from "../lib/cloudinary.js"
 import cloudinary from "../lib/cloudinary.js"
 
 export const signup = async (req, res) => {
@@ -30,6 +31,7 @@ export const signup = async (req, res) => {
 
             res.status(201).json({
                 statusCode: 201,
+                message: "User signed up successfully",
                 data: {
                     _id: newUser._id,
                     fullName: newUser.fullName,
@@ -63,7 +65,7 @@ export const login = async (req, res) => {
                 message: "Email and password is required"
             })
         }
-        const user = User.findOne({ email });
+        const user =await User.findOne({ email });
 
         if (!user) {
             return res.status(400).json({
@@ -84,11 +86,11 @@ export const login = async (req, res) => {
 
         res.status(200).json({
             statusCode: 200,
+            message:"Loggedin successfully",
             data: {
                 _id: user._id,
                 fullName: user.fullName,
                 email: user.email,
-                password: user.password
             }
         })
 
@@ -132,10 +134,10 @@ export const updateProfile = async(req, res) => {
         res.status(200).json({
             statusCode: 200,
             message:"Profile pic updated successfully",
-            user: updatedUser
+            data: updatedUser
         })
     }catch(err){
-        console.log("Error in update profile pic");
+        console.log("Error in update profile pic", err);
 
         res.status(500).json({
             statusCode: 500,

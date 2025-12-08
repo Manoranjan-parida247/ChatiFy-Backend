@@ -2,6 +2,8 @@
 import cloudinary from "../lib/cloudinary.js";
 import Message from "../models/message.js";
 import User from "../models/user.js";
+import { getReceiverSocketId, io } from "../lib/socket.js";
+
 
 //in this api , getting all the contact in the db
 export const getAllContacts = async (req, res) => {
@@ -17,7 +19,7 @@ export const getAllContacts = async (req, res) => {
         })
 
     } catch (err) {
-        console.log("Error in message controller :", err);
+        console.log("Error in getAllContact controller :", err);
         res.status(500).json({
             statusCode: 500,
             message: "Internal server error",
@@ -64,7 +66,7 @@ export const sendMessage = async (req, res) => {
             })
         }
 
-        if (senderId.toString().equeals(receiverId.toString())) {
+        if (senderId.toString() === receiverId.toString()) {
             return res.status(400).json({
                 statusCode: 400,
                 message: "Can not send message to yourself"
@@ -86,6 +88,11 @@ export const sendMessage = async (req, res) => {
 
         await newMessage.save();
         // TODO: adding socket code for real time
+
+        const receiverSocketId = getReceiverSocketId(receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", newMessage);
+        }
 
         res.status(201).json({
             statusCode: 201,
@@ -116,7 +123,7 @@ export const getChatPartners = async (req, res) => {
         const chatPartenerIds = [...new Set(messages.map((msg) => msg.senderId.toString() === loggedInUserId.toString() ? msg.receiverId.toString() : msg.senderId.toString()))]
         // console.log(chatPartenerIds)
 
-        const chatParteners = await User.find({_id: {$in: chatPartenerIds}}).select("-password");
+        const chatParteners = await User.find({ _id: { $in: chatPartenerIds } }).select("-password");
 
         res.status(200).json({
             statusCode: 200,
